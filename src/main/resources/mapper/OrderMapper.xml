@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ordertest.dao.OrderMapper">
+    <!--  新建内部映射  -->
+    <resultMap id="order" type="com.example.ordertest.model.Order">
+        <id property="id" column="id"/>
+        <result property="number" column="number"/>
+        <result property="name" column="name"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModified" column="gmt_modified"/>
+    </resultMap>
+
+    <sql id="orderColums">${alias}.id ,${alias}.number ,${alias}.name ,${alias}.gmt_create,${alias}.gmt_modified</sql>
+    <sql id="orderInsertColums">${alias}.number ,${alias}.name ,${alias}.gmt_create,${alias}.gmt_modified</sql>
+
+    <!--  查询所有  -->
+    <select id="findAll" resultMap="order">
+        select
+        <include refid="orderColums">
+            <property name="alias" value="order_list"/>
+        </include>
+        from order_list
+    </select>
+
+    <!--  根据number查询  -->
+    <select id="findByNumber" parameterType="int" resultMap="order">
+        SELECT
+        <include refid="orderColums">
+            <property name="alias" value="order_list"/>
+        </include>
+        FROM order_list
+        <where>
+            <if test="number!=null">
+                number=#{number }
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertOrder" parameterType="com.example.ordertest.model.Order">
+        insert into
+        order_list(
+        <include refid="orderInsertColums">
+            <property name="table_name" value="order_list"/>
+            <property name="alias" value="order_list"/>
+        </include>
+        )
+        values(#{number },#{name },#{gmtCreate},#{gmtModified})
+    </insert>
+
+    <update id="updateOrder" parameterType="com.example.ordertest.model.Order">
+        update order_list
+        <set>
+            <if test="number!=null">number =#{number },</if>
+            <if test="name !=null">name =#{name },</if>
+            <if test="gmtCreate!=null">gmt_create =#{gmtCreate},</if>
+            <if test="gmtModified!=null">gmt_modified=#{gmtModified}</if>
+        </set>
+        where number =#{number }
+    </update>
+
+    <delete id="deleteOrder" parameterType="Integer">
+        delete from order_list
+        <where>
+            <if test="number!=null">number =#{name }</if>
+        </where>
+    </delete>
+
+    <resultMap id="orderDTO" type="com.example.ordertest.dto.OrderDTO">
+        <id property="id" column="id"/>
+        <result property="number" column="number"/>
+        <result property="name" column="name"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModified" column="gmt_modified"/>
+    </resultMap>
+
+    <!--  根据传入参数进行查询  -->
+    <select id="findByProperty" resultMap="orderDTO">
+        select
+        <include refid="orderColums">
+            <property name="alias" value="order_list"/>
+        </include>
+        from order_list
+        <where>
+            <choose>
+                <when test="number!=null">number =#{number }</when>
+                <when test="name!=null">name =#{name }</when>
+            </choose>
+        </where>
+
+        <if test="orderBy!=null ">
+            order by number ${orderBy}
+        </if>
+        <if test="startNumber!=null and amount!=null">
+            LIMIT #{startNumber},#{amount}
+        </if>
+
+    </select>
+
+</mapper>
